@@ -13,17 +13,20 @@ The clustering algorithms are implemented as a class called SparseSubspaceCluste
 import numpy as np
 from cluster.selfrepresentation import SparseSubspaceClustering
 
+# generate 7 data points from 3 independent subspaces as columns of data matrix X
 X = np.array([[1.0, -1.0, 0.0, 0.0, 0.0,  0.0, 0.0],
               [1.0,  0.5, 0.0, 0.0, 0.0,  0.0, 0.0],
               [0.0,  0.0, 1.0, 0.2, 0.0,  0.0, 0.0],
               [0.0,  0.0, 0.2, 1.0, 0.0,  0.0, 0.0],
               [0.0,  0.0, 0.0, 0.0, 1.0, -1.0, 0.0],
               [0.0,  0.0, 0.0, 0.0, 1.0,  1.0, -1.0]])
-X = X.T
 
-model = SparseSubspaceClustering(n_clusters=3,algorithm='lasso_cd', active_support=False, gamma=50, gamma_nz=True,  tau=1.0, n_nonzero=50).fit(S)
+model = SparseSubspaceClustering(n_clusters=3,algorithm='lasso_cd',active_support=False, gamma=50).fit(X.T)
 print(model.labels_)
+# this should give you array([1, 1, 0, 0, 2, 2, 2]) or a permutation of these labels
 ```
+
+See also run_synthetic.py for extensive experiments on synthetically generated data
 
 # Dependencies
 numpy, scipy, scikit-learn
