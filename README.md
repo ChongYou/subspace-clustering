@@ -27,12 +27,11 @@ print(model.labels_)
 ```
 
 # Results on synthetic data
-We compare different clustering methods on synthetically generated data that is sampled from a union of subspaces. See the file run_synthetic.py for details. The following two figures report the clustering accuracy and running time as the scale of the dataset increases.
+We compare different clustering methods on synthetically generated data that is sampled from a union of subspaces. See the file run_synthetic.py for details. The following two figures report the clustering accuracy and running time as the scale of the dataset increases from 500 to 0.5 million.
 
 ![image](https://github.com/ChongYou/subspace-clustering/blob/master/figs/synthetic_acc.png)    ![image](https://github.com/ChongYou/subspace-clustering/blob/master/figs/synthetic_time.png)
 
-- Clustering accuracy: EnSC > SSC-OMP > SpectralClustering >> KMeans
-- Runnning time: SpectralClustering > EnSC >= SSC-OMP > KMeans 
+Note that EnSC and SSC-OMP not only achieves significantly higher clustering accuracy but also are much faster for large-scale data than SpectralClustering.
 
 # Dependencies
 numpy, scipy, scikit-learn
