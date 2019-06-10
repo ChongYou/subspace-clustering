@@ -26,7 +26,11 @@ print(model.labels_)
 # this should give you array([1, 1, 0, 0, 2, 2, 2]) or a permutation of these labels
 ```
 
-See run_synthetic.py for extensive experiments on synthetically generated data.
+# Results on synthetic data
+The following results are generated from run_synthetic.py
+
+[!image](https://github.com/ChongYou/subspace-clustering/blob/master/figs/synthetic_acc.png)
+[!image](https://github.com/ChongYou/subspace-clustering/blob/master/figs/synthetic_time.png)
 
 # Dependencies
 numpy, scipy, scikit-learn
