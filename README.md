@@ -1,12 +1,12 @@
 # Subspace-Clustering
 Toolbox for large scale sparse subspace clustering
 
-This project provides python implementation of the _elastic net subspace clustering (EnSC)_ and the _sparse subspace clustering by orthogonal matching pursuit (SSC-OMP)_ algorithms described in the following two papers:
+This project provides python implementation of the **elastic net subspace clustering (EnSC)** and the **sparse subspace clustering by orthogonal matching pursuit (SSC-OMP)** algorithms described in the following two papers:
 
 - C. You, C.-G. Li, D. Robinson, R. Vidal, Oracle Based Active Set Algorithm for Scalable Elastic Net Subspace Clustering, CVPR 2016
 - C. You, D. Robinson, R. Vidal, Scalable Sparse Subspace Clustering by Orthogonal Matching Pursuit, CVPR 2016
 
-The clustering algorithms are implemented as two classes called ElasticNetSubspaceClustering and SparseSubspaceClusteringOMP that have a fit function to learn the clusters. They may be used in the same way as the K-Means, SpectralClustering and others that are in sklearn.cluster.
+The clustering algorithms are implemented as two classes called _ElasticNetSubspaceClustering_ and _SparseSubspaceClusteringOMP_ that have a fit function to learn the clusters. They may be used in the same way as the _KMeans_, _SpectralClustering_ and others that are in _sklearn.cluster_.
 
 # Example
 ```
@@ -33,7 +33,7 @@ The following two figures report the clustering accuracy and running time as the
 
 ![image](https://github.com/ChongYou/subspace-clustering/blob/master/figs/synthetic_acc.png)    ![image](https://github.com/ChongYou/subspace-clustering/blob/master/figs/synthetic_time.png)
 
-EnSC and SSC-OMP not only achieves significantly **higher clustering accuracy** but also are much **faster for large-scale data** than SpectralClustering. 
+EnSC and SSC-OMP not only achieves significantly **higher clustering accuracy** but also are much **faster for large-scale data** than spectral clustering. 
 
 # Dependencies
 numpy, scipy, scikit-learn
