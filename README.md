@@ -30,7 +30,6 @@ print(model.labels_)
 The following results are generated from run_synthetic.py
 
 ![image](https://github.com/ChongYou/subspace-clustering/blob/master/figs/synthetic_acc.png)  
-
 ![image](https://github.com/ChongYou/subspace-clustering/blob/master/figs/synthetic_time.png)
 
 # Dependencies
