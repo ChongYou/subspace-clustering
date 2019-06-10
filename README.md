@@ -29,8 +29,7 @@ print(model.labels_)
 # Results on synthetic data
 The following results are generated from run_synthetic.py
 
-![image](https://github.com/ChongYou/subspace-clustering/blob/master/figs/synthetic_acc.png)  
-![image](https://github.com/ChongYou/subspace-clustering/blob/master/figs/synthetic_time.png)
+![image](https://github.com/ChongYou/subspace-clustering/blob/master/figs/synthetic_acc.png)  ![image](https://github.com/ChongYou/subspace-clustering/blob/master/figs/synthetic_time.png)
 
 # Dependencies
 numpy, scipy, scikit-learn
