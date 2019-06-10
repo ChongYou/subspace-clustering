@@ -1,7 +1,7 @@
 # Subspace-Clustering
 Toolbox for large scale sparse subspace clustering
 
-This project provides python implementation of large scale subspace clustering algorithms described in the following papers:
+This project provides python implementation of the _elastic net subspace clustering (EnSC)_ and the _sparse subspace clustering by orthogonal matching pursuit (SSC-OMP)_ algorithms described in the following two papers:
 
 - C. You, C.-G. Li, D. Robinson, R. Vidal, Oracle Based Active Set Algorithm for Scalable Elastic Net Subspace Clustering, CVPR 2016
 - C. You, D. Robinson, R. Vidal, Scalable Sparse Subspace Clustering by Orthogonal Matching Pursuit, CVPR 2016
@@ -27,7 +27,9 @@ print(model.labels_)
 ```
 
 # Results on synthetic data
-We compare different clustering methods on synthetically generated data that is sampled from a union of subspaces. See the file run_synthetic.py for details. The following two figures report the clustering accuracy and running time as the scale of the dataset increases from 500 to 0.5 million.
+We compare EnSC and SSC-OMP with the k-means and spectral clustering algorithms on synthetically generated dataset where data is sampled from a union of subspaces. See the file run_synthetic.py for details. 
+
+The following two figures report the clustering accuracy and running time as the scale of the dataset increases from 500 to 0.5 million.
 
 ![image](https://github.com/ChongYou/subspace-clustering/blob/master/figs/synthetic_acc.png)    ![image](https://github.com/ChongYou/subspace-clustering/blob/master/figs/synthetic_time.png)
 
