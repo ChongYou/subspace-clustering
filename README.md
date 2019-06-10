@@ -31,7 +31,7 @@ We compare different clustering methods on synthetically generated data that is 
 
 ![image](https://github.com/ChongYou/subspace-clustering/blob/master/figs/synthetic_acc.png)    ![image](https://github.com/ChongYou/subspace-clustering/blob/master/figs/synthetic_time.png)
 
-Note that EnSC and SSC-OMP not only achieves significantly higher clustering accuracy but also are much faster for large-scale data than SpectralClustering.
+EnSC and SSC-OMP not only achieves significantly **higher clustering accuracy** but also are much **faster for large-scale data** than SpectralClustering. 
 
 # Dependencies
 numpy, scipy, scikit-learn
