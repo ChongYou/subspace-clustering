@@ -38,7 +38,7 @@ EnSC and SSC-OMP not only achieves significantly **higher clustering accuracy** 
 # Dependencies
 numpy, scipy, scikit-learn
 
-The SPAMS package (http://spams-devel.gforge.inria.fr/downloads.html) is optional for faster computation. On Ubuntu 16.04, SPAMS may be installed by the following commands:
+The SPAMS package (http://spams-devel.gforge.inria.fr/downloads.html) is recommendedfor faster computation. It may be used by setting algorithm='spams' in ElasticNetSubspaceClustering. On Ubuntu 16.04, SPAMS may be installed by the following commands:
 ```
 sudo apt install liblapack-dev libopenblas-dev
 pip install --index-url https://test.pypi.org/simple/ spams
