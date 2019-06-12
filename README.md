@@ -6,7 +6,7 @@ This project provides python implementation of the **elastic net subspace cluste
 - C. You, C.-G. Li, D. Robinson, R. Vidal, Oracle Based Active Set Algorithm for Scalable Elastic Net Subspace Clustering, CVPR 2016
 - C. You, D. Robinson, R. Vidal, Scalable Sparse Subspace Clustering by Orthogonal Matching Pursuit, CVPR 2016
 
-The clustering algorithms are implemented as two classes called _ElasticNetSubspaceClustering_ and _SparseSubspaceClusteringOMP_ that have a fit function to learn the clusters. They may be used in the same way as the _KMeans_, _SpectralClustering_ and others that are in _sklearn.cluster_.
+The clustering algorithms are implemented as two classes _ElasticNetSubspaceClustering_ and _SparseSubspaceClusteringOMP_ that have a fit function to learn the clusters. They may be used in the same way as the _KMeans_, _SpectralClustering_ and others that are in _sklearn.cluster_.
 
 # Example
 ```
