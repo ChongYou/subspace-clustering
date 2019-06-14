@@ -81,7 +81,8 @@ class SelfRepresentation(BaseEstimator, ClusterMixin):
         """
         self.affinity = (np.absolute(self.representation_matrix_) + np.absolute(self.representation_matrix_.T)) / 2.0
 
-        # self.affinity = kneighbors_graph(self.representation_matrix_, 6, mode='connectivity', include_self=False)
+        # neighbors_graph = kneighbors_graph(self.representation_matrix_, 5, mode='connectivity', include_self=False)
+        # self.affinity = neighbors_graph + neighbors_graph.T
 
     def _spectral_clustering(self):
         self.labels_ = spectral_clustering(self.affinity, self.n_clusters, norm_laplacian=True, random_state=self.random_state, n_init=self.n_init)
