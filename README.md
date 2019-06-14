@@ -1,5 +1,5 @@
 # Subspace-Clustering
-Toolbox for large scale sparse subspace clustering
+Toolbox for large scale subspace clustering
 
 This project provides python implementation of the **elastic net subspace clustering (EnSC)** and the **sparse subspace clustering by orthogonal matching pursuit (SSC-OMP)** algorithms described in the following two papers:
 
