@@ -40,10 +40,10 @@ To reproduce the results, run run_synthetic.py.
 # Results on the MNIST digit dataset
 We evaluate the performance of different methods for the task of clustering 70,000 (i.e., 60,000 training plus 10,000 testing) images from the MNIST dataset. The following table reports the clustering accuracy and running time.
 
-                        | KMeans | SpectralClustering | EnSC  | SSC-OMP |
-                        | ------ | ------------------ | ----- | ------- |
-Clustering accuracy (%) | 53.52  | 73.38              | 97.62 | 92.79   |
-Running time (sec.)     | 50     | 1515               | 3620  | 1676    |
+|                         | KMeans | SpectralClustering | EnSC  | SSC-OMP |
+|   --------              | ------ | ------------------ | ----- | ------- |
+| Clustering accuracy (%) | 53.52  | 73.38              | 97.62 | 92.79   |
+| Running time (sec.)     | 50     | 1515               | 3620  | 1676    |
 
 EnSC and SSC-OMP are able to achieve very high clustering accuracy within about an hour.
 
