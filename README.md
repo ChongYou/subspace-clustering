@@ -27,19 +27,39 @@ print(model.labels_)
 ```
 
 # Results on synthetic data
-We compare EnSC and SSC-OMP with the k-means and spectral clustering algorithms on synthetically generated dataset where data is sampled from a union of subspaces. See the file run_synthetic.py for details. 
+We compare EnSC and SSC-OMP with the k-means and spectral clustering algorithms on synthetically generated dataset where data is sampled from a union of subspaces.  
 
 The following two figures report the clustering accuracy and running time as the scale of the dataset increases from 500 to 0.5 million.
 
 ![image](https://github.com/ChongYou/subspace-clustering/blob/master/figs/synthetic_acc.png)    ![image](https://github.com/ChongYou/subspace-clustering/blob/master/figs/synthetic_time.png)
 
-EnSC and SSC-OMP not only achieves significantly **higher clustering accuracy** but also are much **faster for large-scale data** than spectral clustering. 
+EnSC and SSC-OMP not only achieves significantly higher clustering accuracy than K-means and spectral clustering but are also very efficient. 
+
+To reproduce the results, run run_synthetic.py.
+
+# Results on the MNIST digit dataset
+We evaluate the performance of different methods for the task of clustering 70,000 (i.e., 60,000 training plus 10,000 testing) images from the MNIST dataset. The following table reports the clustering accuracy and running time.
+
+                        | KMeans | SpectralClustering | EnSC  | SSC-OMP |
+                        | ------ | ------------------ | ----- | ------- |
+Clustering accuracy (%) | 53.52  | 73.38              | 97.62 | 92.79   |
+Running time (sec.)     | 50     | 1515               | 3620  | 1676    |
+
+EnSC and SSC-OMP are able to achieve very high clustering accuracy within about an hour.
+
+To reproduce the results, run run_mnist.py.
 
 # Dependencies
 numpy, scipy, scikit-learn
 
-The SPAMS package (http://spams-devel.gforge.inria.fr/downloads.html) is recommendedfor faster computation. It may be used by setting algorithm='spams' in ElasticNetSubspaceClustering. On Ubuntu 16.04, SPAMS may be installed by the following commands:
+The SPAMS package (http://spams-devel.gforge.inria.fr/downloads.html) is recommended for faster computation. It may be used by setting algorithm='spams' in ElasticNetSubspaceClustering. On Ubuntu 16.04, SPAMS may be installed by the following commands:
 ```
 sudo apt install liblapack-dev libopenblas-dev
 pip install --index-url https://test.pypi.org/simple/ spams
 ```
+
+The Kymatio package (https://www.kymat.io/) is required for running experiments on MNIST. It may be installed by
+```
+pip install kymatio
+```
+or by following the instructions on their webpage.
