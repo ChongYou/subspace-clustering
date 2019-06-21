@@ -15,17 +15,23 @@ from sklearn.utils import check_random_state, check_array, check_symmetric
 
 
 class SelfRepresentation(BaseEstimator, ClusterMixin):
-    """Base class for self-representation based subspace clustering
+    """Base class for self-representation based subspace clustering.
 
     Parameters
     -----------
     n_clusters : integer, optional, default: 8
         Number of clusters in the dataset.
+    affinity : string, optional, 'symmetrize' or 'nearest_neighbors', default 'symmetrize'
+        The strategy for constructing affinity_matrix_ from representation_matrix_.
+        If ``symmetrize``, then affinity_matrix_ is set to be
+    		|representation_matrix_| + |representation_matrix_|^T.
+		If ``nearest_neighbors``, then the affinity_matrix_ is the k nearest
+		    neighbor graph for the rows of representation_matrix_
     random_state : int, RandomState instance or None, optional, default: None
         This is the random_state parameter for k-means. 
     n_init : int, optional, default: 10
         This is the n_init parameter for k-means. 
-    n_jobs : int, optional (default = 1)
+    n_jobs : int, optional, default: 1
         The number of parallel jobs to run.
         If ``-1``, then the number of jobs is set to the number of CPU cores.
 
@@ -35,11 +41,12 @@ class SelfRepresentation(BaseEstimator, ClusterMixin):
         Self-representation matrix. Available only if after calling
         ``fit`` or ``fit_self_representation``.
     labels_ :
-        Labels of each point. Available only if after calling ``fit``
+        Labels of each point. Available only if after calling ``fit``.
     """
 
-    def __init__(self, n_clusters=8, random_state=None, n_init=20, n_jobs=1):
+    def __init__(self, n_clusters=8, affinity='symmetrize', random_state=None, n_init=20, n_jobs=1):
         self.n_clusters = n_clusters
+        self.affinity = affinity
         self.random_state = random_state
         self.n_init = n_init
         self.n_jobs = n_jobs
@@ -63,7 +70,7 @@ class SelfRepresentation(BaseEstimator, ClusterMixin):
         return self
 	
     def fit_self_representation(self, X, y=None):
-        """Compute representation matrix without apply spectral clustering
+        """Compute representation matrix without apply spectral clustering.
         Parameters
         ----------
         X : array-like or sparse matrix, shape (n_samples, n_features)
@@ -77,20 +84,32 @@ class SelfRepresentation(BaseEstimator, ClusterMixin):
         return self
 
     def _representation_to_affinity(self):
-        """Compute affinity matrix from representation matrix as A = (|C|+|C'|)/2
+        """Compute affinity matrix from representation matrix.
         """
-        self.affinity = (np.absolute(self.representation_matrix_) + np.absolute(self.representation_matrix_.T)) / 2.0
-
-        # neighbors_graph = kneighbors_graph(self.representation_matrix_, 5, mode='connectivity', include_self=False)
-        # self.affinity = neighbors_graph + neighbors_graph.T
+        normalized_representation_matrix_ = normalize(self.representation_matrix_, 'l2')
+        if self.affinity == 'symmetrize':
+            self.affinity_matrix_ = 0.5 * (np.absolute(normalized_representation_matrix_) + np.absolute(normalized_representation_matrix_.T))
+        elif self.affinity == 'nearest_neighbors':
+            neighbors_graph = kneighbors_graph(normalized_representation_matrix_, 3, 
+		                                       mode='connectivity', include_self=False)
+            self.affinity_matrix_ = 0.5 * (neighbors_graph + neighbors_graph.T)
 
     def _spectral_clustering(self):
-        self.labels_ = spectral_clustering(self.affinity, self.n_clusters, norm_laplacian=True, random_state=self.random_state, n_init=self.n_init)
+        affinity_matrix_ = check_symmetric(self.affinity_matrix_)
+        random_state = check_random_state(self.random_state)
+        
+        laplacian = sparse.csgraph.laplacian(affinity_matrix_, normed=True)
+        _, vec = sparse.linalg.eigsh(sparse.identity(laplacian.shape[0]) - laplacian, 
+                                     k=self.n_clusters, sigma=None, which='LA')
+        embedding = normalize(vec)
+        _, self.labels_, _ = cluster.k_means(embedding, self.n_clusters, 
+                                             random_state=random_state, n_init=self.n_init)
 
 
-def active_support_elastic_net(X, y, alpha, tau=1.0, algorithm='spams', support_init='knn', support_size=100, maxiter=40):
+def active_support_elastic_net(X, y, alpha, tau=1.0, algorithm='spams', support_init='knn', 
+                               support_size=100, maxiter=40):
     """An active support based algorithm for solving the elastic net optimization problem
-        min_{c} tau ||c||_1 + (1-tau)/2 ||c||_2^2 + alpha / 2 ||y - c X ||_2^2
+        min_{c} tau ||c||_1 + (1-tau)/2 ||c||_2^2 + alpha / 2 ||y - c X ||_2^2.
 		
     Parameters
     -----------
@@ -99,22 +118,22 @@ def active_support_elastic_net(X, y, alpha, tau=1.0, algorithm='spams', support_
     alpha : float
     tau : float, default 1.0
     algorithm : string, default ``spams``
-        Algorithm for computing solving the subproblems. Either lasso_lars or lasso_cd or spams 
+        Algorithm for computing solving the subproblems. Either lasso_lars or lasso_cd or spams
         (installation of spams package is required).
         Note: ``lasso_lars`` and ``lasso_cd`` only support tau = 1.
     support_init: string, default ``knn``
-        This determines how the active support is initialized
-        It can be either ``knn`` or ``L2``
+        This determines how the active support is initialized.
+        It can be either ``knn`` or ``L2``.
     support_size: int, default 100
-        This determines the size of working set
-        A small support_size decreases the runtime per iteration while increase the number of iterations
+        This determines the size of the working set.
+        A small support_size decreases the runtime per iteration while increase the number of iterations.
     maxiter: int default 40
-        Termination condition for active support update
+        Termination condition for active support update.
 		
     Returns
     -------
     c : shape n_samples
-        The optimal solution to the optimization problem
+        The optimal solution to the optimization problem.
 	"""
     n_samples = X.shape[0]
 
@@ -132,7 +151,8 @@ def active_support_elastic_net(X, y, alpha, tau=1.0, algorithm='spams', support_
     for _ in range(maxiter):
         Xs = X[supp, :]
         if algorithm == 'spams':
-            cs = spams.lasso(np.asfortranarray(y.T), D=np.asfortranarray(Xs.T), lambda1=tau*alpha, lambda2=(1.0-tau)*alpha)
+            cs = spams.lasso(np.asfortranarray(y.T), D=np.asfortranarray(Xs.T), 
+                             lambda1=tau*alpha, lambda2=(1.0-tau)*alpha)
             cs = np.asarray(cs.todense()).T
         else:
             cs = sparse_encode(y, Xs, algorithm=algorithm, alpha=alpha)
@@ -168,21 +188,8 @@ def active_support_elastic_net(X, y, alpha, tau=1.0, algorithm='spams', support_
     return c
 
   
-def spectral_clustering(affinity, n_clusters, norm_laplacian=True, random_state=None, n_init=20):
-    """Spectral clustering.
-    This is a simplified version of spectral_clustering in sklearn. 
-    """
-    affinity = check_symmetric(affinity)
-    random_state = check_random_state(random_state)
-    
-    laplacian = sparse.csgraph.laplacian(affinity, normed=norm_laplacian)
-    _, vec = sparse.linalg.eigsh(sparse.identity(laplacian.shape[0]) - laplacian, k=n_clusters, sigma=None, which='LA')
-    embedding = normalize(vec)
-    _, labels, _ = cluster.k_means(embedding, n_clusters, random_state=random_state, n_init=n_init)
-    return  labels
-
-
-def elastic_net_subspace_clustering(X, gamma=50.0, gamma_nz=True, tau=1.0, algorithm='lasso_lars', n_nonzero=50, active_support=True, support_init='knn', support_size=100):
+def elastic_net_subspace_clustering(X, gamma=50.0, gamma_nz=True, tau=1.0, algorithm='lasso_lars', 
+                                    active_support=True, active_support_params=None, n_nonzero=50):
     """Elastic net subspace clustering (EnSC) [1]. 
     Compute self-representation matrix C from solving the following optimization problem
     min_{c_j} tau ||c_j||_1 + (1-tau)/2 ||c_j||_2^2 + alpha / 2 ||x_j - c_j X ||_2^2 s.t. c_jj = 0,
@@ -208,10 +215,11 @@ def elastic_net_subspace_clustering(X, gamma=50.0, gamma_nz=True, tau=1.0, algor
         Input data to be clustered
     gamma : float
     gamma_nz : boolean, default True
-        gamma and gamma_nz together determines the parameter alpha. If gamma_nz = False, then
-        alpha = gamma. If gamma_nz = True, then alpha = gamma * alpha0, where alpha0 is the largest 
-        number that the solution to the optimization problem with alpha = alpha0 is zero vector
-        (see Proposition 1 in [1]). 
+        gamma and gamma_nz together determines the parameter alpha. When ``gamma_nz = False``, 
+        alpha = gamma. When ``gamma_nz = True``, then alpha = gamma * alpha0, where alpha0 is 
+        the largest number such that the solution to the optimization problem with alpha = alpha0
+		is the zero vector (see Proposition 1 in [1]). Therefore, when ``gamma_nz = True``, gamma
+        should be a value greater than 1.0. A good choice is typically in the range [5, 500].	
     tau : float, default 1.0
         Parameter for elastic net penalty term. 
         When tau = 1.0, the method reduces to sparse subspace clustering with basis pursuit (SSC-BP) [2].
@@ -227,14 +235,12 @@ def elastic_net_subspace_clustering(X, gamma=50.0, gamma_nz=True, tau=1.0, algor
     active_support: boolean, default True
         Set to True to use the active support algorithm in [1] for solving the optimization problem.
         This should significantly reduce the running time when n_samples is large.
-    support_init: string, default ``knn``
-        This determines how the active support is initialized for the active support algorithm. 
-        It can be either ``knn`` or ``L2``. 
-        Ignored when active_support is set to False
-    support_size: int, default 100
-        This determines the size of working set in the active support algorithm. 
-        A small support_size decreases the runtime per iteration while increase the number of iterations.
-        Ignored when active_support is set to False
+    active_support_params: dictionary of string to any, optional
+        Parameters (keyword arguments) and values for the active support algorithm. It may be
+        used to set the parameters ``support_init``, ``support_size`` and ``maxiter``, see
+        ``active_support_elastic_net`` for details. 
+        Example: active_support_params={'support_size':50, 'maxiter':100}
+        Ignored when ``active_support=False``
 	
     Returns
     -------
@@ -248,8 +254,11 @@ def elastic_net_subspace_clustering(X, gamma=50.0, gamma_nz=True, tau=1.0, algor
     [3] C. Lu, et al. Robust and efficient subspace segmentation via least squares regression, ECCV 2012
     """
     if algorithm in ('lasso_lars', 'lasso_cd') and tau < 1.0 - 1.0e-10:  
-        warnings.warn('algorithm cannot handle tau smaller than 1. Using tau = 1')
+        warnings.warn('algorithm {} cannot handle tau smaller than 1. Using tau = 1'.format(algorithm))
         tau = 1.0
+		
+    if active_support == True and active_support_params == None:
+        active_support_params = {}
 
     n_samples = X.shape[0]
     rows = np.zeros(n_samples * n_nonzero)
@@ -272,15 +281,16 @@ def elastic_net_subspace_clustering(X, gamma=50.0, gamma_nz=True, tau=1.0, algor
                 alpha = 1.0 / gamma
 
             if active_support == True:
-                c = active_support_elastic_net(X, y, alpha, tau, algorithm, support_init, support_size)
+                c = active_support_elastic_net(X, y, alpha, tau, algorithm, **active_support_params)
             else:
                 if algorithm == 'spams':
-                    c = spams.lasso(np.asfortranarray(y.T), D=np.asfortranarray(X.T), lambda1=tau * alpha, lambda2=(1.0-tau) * alpha)
+                    c = spams.lasso(np.asfortranarray(y.T), D=np.asfortranarray(X.T), 
+                                    lambda1=tau * alpha, lambda2=(1.0-tau) * alpha)
                     c = np.asarray(c.todense()).T[0]
                 else:
                     c = sparse_encode(y, X, algorithm=algorithm, alpha=alpha)[0]
         else:
-          warnings.warn("algorithm not found")
+          warnings.warn("algorithm {} not found".format(algorithm))
 	    	  
         index = np.flatnonzero(c)
         if index.size > n_nonzero:
@@ -323,7 +333,9 @@ class ElasticNetSubspaceClustering(SelfRepresentation):
     n_clusters : integer, optional, default: 8
         Number of clusters in the dataset.
     random_state : int, RandomState instance or None, optional, default: None
-        This is the random_state parameter for k-means. 
+        This is the random_state parameter for k-means.
+    affinity : string, optional, 'symmetrize' or 'nearest_neighbors', default 'symmetrize'
+        The strategy for constructing affinity_matrix_ from representation_matrix_.		
     n_init : int, optional, default: 10
         This is the n_init parameter for k-means. 
     gamma : float
@@ -340,22 +352,20 @@ class ElasticNetSubspaceClustering(SelfRepresentation):
         Algorithm for computing the representation. Either lasso_lars or lasso_cd or spams 
         (installation of spams package is required).
         Note: ``lasso_lars`` and ``lasso_cd`` only support tau = 1.
+    active_support: boolean, default True
+        Set to True to use the active support algorithm in [1] for solving the optimization problem.
+        This should significantly reduce the running time when n_samples is large.
+    active_support_params: dictionary of string to any, optional
+        Parameters (keyword arguments) and values for the active support algorithm. It may be
+        used to set the parameters ``support_init``, ``support_size`` and ``maxiter``, see
+        ``active_support_elastic_net`` for details. 
+        Example: active_support_params={'support_size':50, 'maxiter':100}
+        Ignored when ``active_support=False``
     n_nonzero : int, default 50
         This is an upper bound on the number of nonzero entries of each representation vector. 
         If there are more than n_nonzero nonzero entries,  only the top n_nonzero number of
         entries with largest absolute value are kept.
-    active_support: boolean, default True
-        Set to True to use the active support algorithm in [1] for solving the optimization problem.
-        This should significantly reduce the running time when n_samples is large.
-    support_init: string, default ``knn``
-        This determines how the active support is initialized for the active support algorithm. 
-        It can be either ``knn`` or ``L2``. 
-        Ignored when active_support is set to False
-    support_size: int, default 100
-        This determines the size of working set in the active support algorithm. 
-        A small support_size decreases the runtime per iteration while increase the number of iterations.
-        Ignored when active_support is set to False
-	
+		
     Attributes
     ----------
     representation_matrix_ : array-like, shape (n_samples, n_samples)
@@ -370,20 +380,23 @@ class ElasticNetSubspaceClustering(SelfRepresentation):
 	[2] E. Elhaifar, R. Vidal, Sparse Subspace Clustering: Algorithm, Theory, and Applications, TPAMI 2013
     [3] C. Lu, et al. Robust and efficient subspace segmentation via least squares regression, ECCV 2012
     """
-    def __init__(self, n_clusters=8, random_state=None, n_init=20, n_jobs=1, gamma=50.0, gamma_nz=True, tau=1.0, algorithm='lasso_lars', n_nonzero=50, active_support=True, support_init='knn', support_size=100):
+    def __init__(self, n_clusters=8, affinity='symmetrize', random_state=None, n_init=20, n_jobs=1, gamma=50.0, gamma_nz=True, tau=1.0, 
+                 algorithm='lasso_lars', active_support=True, active_support_params=None, n_nonzero=50):
         self.gamma = gamma
         self.gamma_nz = gamma_nz
         self.tau = tau
         self.algorithm = algorithm
-        self.n_nonzero = n_nonzero
         self.active_support = active_support
-        self.support_size = support_size
-        self.support_init = support_init
-        SelfRepresentation.__init__(self, n_clusters, random_state, n_init, n_jobs)
+        self.active_support_params = active_support_params
+        self.n_nonzero = n_nonzero
+
+        SelfRepresentation.__init__(self, n_clusters, affinity, random_state, n_init, n_jobs)
     
     def _self_representation(self, X):
-        self.representation_matrix_ = elastic_net_subspace_clustering(X, self.gamma, self.gamma_nz, self.tau, self.algorithm, self.n_nonzero, 
-		                                                              self.active_support, self.support_init, self.support_size)
+        self.representation_matrix_ = elastic_net_subspace_clustering(X, self.gamma, self.gamma_nz, 
+                                                                      self.tau, self.algorithm, 
+		                                                              self.active_support, self.active_support_params, 
+		                                                              self.n_nonzero)
 					
 
 def sparse_subspace_clustering_orthogonal_matching_pursuit(X, n_nonzero=10, thr=1.0e-6):
@@ -454,6 +467,8 @@ class SparseSubspaceClusteringOMP(SelfRepresentation):
     -----------
     n_clusters : integer, optional, default: 8
         Number of clusters in the dataset.
+    affinity : string, optional, 'symmetrize' or 'nearest_neighbors', default 'symmetrize'
+        The strategy for constructing affinity_matrix_ from representation_matrix_.
     random_state : int, RandomState instance or None, optional, default: None
         This is the random_state parameter for k-means. 
     n_init : int, optional, default: 10
@@ -475,10 +490,10 @@ class SparseSubspaceClusteringOMP(SelfRepresentation):
     -----------	
     C. You, D. Robinson, R. Vidal, Scalable Sparse Subspace Clustering by Orthogonal Matching Pursuit, CVPR 2016
     """
-    def __init__(self, n_clusters=8, random_state=None, n_init=10, n_jobs=1, n_nonzero=10, thr=1.0e-6):
+    def __init__(self, n_clusters=8, affinity='symmetrize', random_state=None, n_init=10, n_jobs=1, n_nonzero=10, thr=1.0e-6):
         self.n_nonzero = n_nonzero
         self.thr = thr
-        SelfRepresentation.__init__(self, n_clusters, random_state, n_init, n_jobs)
+        SelfRepresentation.__init__(self, n_clusters, affinity, random_state, n_init, n_jobs)
     
     def _self_representation(self, X):
         self.representation_matrix_ = sparse_subspace_clustering_orthogonal_matching_pursuit(X, self.n_nonzero, self.thr)
@@ -518,7 +533,8 @@ def least_squares_subspace_clustering(X, gamma=10.0, exclude_self=False):
             return np.matmul(X, tmp).T
     else:
         if n_samples < n_features:
-            D = np.linalg.solve(np.matmul(X, X.T) + np.eye(n_sample) / gamma, np.eye(n_sample))  # see Theorem 6 in https://arxiv.org/pdf/1404.6736.pdf
+            D = np.linalg.solve(np.matmul(X, X.T) + np.eye(n_sample) / gamma, np.eye(n_sample))  
+            # see Theorem 6 in https://arxiv.org/pdf/1404.6736.pdf
         else:
             tmp = np.linalg.solve(np.matmul(X.T, X) + np.eye(n_features) / gamma, X.T)
             D = eye(n_samples) - np.matmul(X, tmp)
@@ -532,6 +548,14 @@ class LeastSquaresSubspaceClustering(SelfRepresentation):
 	
 	Parameters
     -----------
+    n_clusters : integer, optional, default: 8
+        Number of clusters in the dataset.
+    affinity : string, optional, default 'symmetrize'
+        This may be either 'symmetrize' or 'nearest_neighbors'.
+    random_state : int, RandomState instance or None, optional, default: None
+        This is the random_state parameter for k-means. 
+    n_init : int, optional, default: 10
+        This is the n_init parameter for k-means. 
     gamma : float
         Parameter on noise regularization term
     exclude_self : boolean, default False
@@ -549,10 +573,10 @@ class LeastSquaresSubspaceClustering(SelfRepresentation):
     -----------	
     C. Lu, et al. Robust and efficient subspace segmentation via least squares regression, ECCV 2012
     """
-    def __init__(self, n_clusters=8, random_state=None, n_init=None, n_jobs=1, gamma=10.0, exclude_self=False):
+    def __init__(self, n_clusters=8, affinity='symmetrize', random_state=None, n_init=None, n_jobs=1, gamma=10.0, exclude_self=False):
         self.gamma = gamma
         self.exclude_self = exclude_self
-        SelfRepresentation.__init__(self, n_clusters, random_state, n_init, n_jobs)
+        SelfRepresentation.__init__(self, n_clusters, affinity, random_state, n_init, n_jobs)
     
     def _self_representation(self, X):
         self.representation_matrix_ = least_squares_subspace_clustering(X, self.gamma, self.exclude_self)
