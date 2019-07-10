@@ -63,3 +63,25 @@ The Kymatio package (https://www.kymat.io/) is required for running experiments 
 pip install kymatio
 ```
 or by following the instructions on their webpage.
+
+# Citing this work
+
+```
+@inproceedings{you2016scalable,
+  title={Scalable sparse subspace clustering by orthogonal matching pursuit},
+  author={You, Chong and Robinson, Daniel and Vidal, Ren{\'e}},
+  booktitle={Proceedings of the IEEE conference on computer vision and pattern recognition},
+  pages={3918--3927},
+  year={2016}
+}
+```
+```
+@inproceedings{you2016oracle,
+  title={Oracle based active set algorithm for scalable elastic net subspace clustering},
+  author={You, Chong and Li, Chun-Guang and Robinson, Daniel P and Vidal, Ren{\'e}},
+  booktitle={Proceedings of the IEEE conference on computer vision and pattern recognition},
+  pages={3928--3937},
+  year={2016}
+}
+```
+
