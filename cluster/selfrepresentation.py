@@ -1,6 +1,7 @@
 import warnings
 import math
 import numpy as np
+import progressbar
 import spams
 import time
 
@@ -266,7 +267,8 @@ def elastic_net_subspace_clustering(X, gamma=50.0, gamma_nz=True, tau=1.0, algor
     vals = np.zeros(n_samples * n_nonzero)
     curr_pos = 0
  
-    for i in range(n_samples):
+    for i in progressbar.progressbar(range(n_samples)):
+    # for i in range(n_samples):
     #    if i % 1000 == 999:
     #        print('SSC: sparse coding finished {i} in {n_samples}'.format(i=i, n_samples=n_samples))
         y = X[i, :].copy().reshape(1, -1)
@@ -428,8 +430,9 @@ def sparse_subspace_clustering_orthogonal_matching_pursuit(X, n_nonzero=10, thr=
     cols = np.zeros(n_samples * n_nonzero, dtype = int)
     vals = np.zeros(n_samples * n_nonzero)
     curr_pos = 0
- 
-    for i in range(n_samples):
+
+    for i in progressbar.progressbar(range(n_samples)):
+    # for i in range(n_samples):
         residual = X[i, :].copy()  # initialize residual
         supp = np.empty(shape=(0), dtype = int)  # initialize support
         residual_norm_thr = np.linalg.norm(X[i, :]) * thr
