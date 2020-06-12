@@ -8,6 +8,7 @@ from decomposition.dim_reduction import dim_reduction
 from kymatio import Scattering2D
 from metrics.cluster.accuracy import clustering_accuracy
 from sklearn import cluster
+from sklearn.metrics import normalized_mutual_info_score, adjusted_rand_score
 from sklearn.preprocessing import normalize
 from torchvision import datasets, transforms
 
@@ -87,6 +88,8 @@ for name, algorithm in clustering_algorithms:
     t_begin = time.time()
     algorithm.fit(data)
     t_end = time.time()
-    accuracy = clustering_accuracy(label, algorithm.labels_)
+    acc = clustering_accuracy(label, algorithm.labels_)
+    nmi = normalized_mutual_info_score(label, algorithm.labels_, average_method='geometric')
+    ari = adjusted_rand_score(label, algorithm.labels_)
 
-    print('Algorithm: {}. Clustering accuracy: {}. Running time: {}'.format(name, accuracy, t_end - t_begin))
+    print('Algorithm: {}. acc: {}, nmi: {}, ari: {}, Running time: {}'.format(name, acc, nmi, ari, t_end - t_begin))
