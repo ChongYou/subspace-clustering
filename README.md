@@ -42,7 +42,9 @@ We evaluate the performance of different methods for the task of clustering 70,0
 
 |                         | KMeans | SpectralClustering | EnSC  | SSC-OMP |
 |   --------              | ------ | ------------------ | ----- | ------- |
-| Clustering accuracy (%) | 53.52  | 73.38              | 97.62 | 92.79   |
+| Accuracy                | 53.52  | 73.38              | 97.62 | 92.79   |
+| NMI                     | 49.74  | 86.74              | 93.69 | 84.25   |
+| ARI                     | 36.30  | 74.53              | 94.84 | 84.91   |
 | Running time (sec.)     | 50     | 1515               | 3620  | 1676    |
 
 EnSC and SSC-OMP are able to achieve very high clustering accuracy within about an hour.
