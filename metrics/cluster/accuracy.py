@@ -1,5 +1,5 @@
 from scipy.optimize import linear_sum_assignment
-from sklearn.metrics.cluster import supervised
+from sklearn.metrics.cluster import _supervised
 
 import numpy as np
 
@@ -34,9 +34,9 @@ def clustering_accuracy(labels_true, labels_pred):
     accuracy : float
        return clustering accuracy in the range of [0, 1]
     """
-    labels_true, labels_pred = supervised.check_clusterings(labels_true, labels_pred)
-    # value = supervised.contingency_matrix(labels_true, labels_pred, sparse=False)
-    value = supervised.contingency_matrix(labels_true, labels_pred)
+    labels_true, labels_pred = _supervised.check_clusterings(labels_true, labels_pred)
+    # value = _supervised.contingency_matrix(labels_true, labels_pred, sparse=False)
+    value = _supervised.contingency_matrix(labels_true, labels_pred)
     [r, c] = linear_sum_assignment(-value)
     return value[r, c].sum() / len(labels_true)
   
