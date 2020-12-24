@@ -52,12 +52,11 @@ EnSC and SSC-OMP are able to achieve very high clustering accuracy within about 
 To reproduce the results, run run_mnist.py.
 
 # Dependencies
-numpy, scipy, scikit-learn
+numpy, scipy, scikit-learn, progressbar2
 
-The SPAMS package (http://spams-devel.gforge.inria.fr/downloads.html) is recommended for faster computation. It may be used by setting algorithm='spams' in ElasticNetSubspaceClustering. On Ubuntu 16.04, SPAMS may be installed by the following commands:
+The SPAMS package (http://spams-devel.gforge.inria.fr/downloads.html) is recommended for faster computation. It may be used by setting algorithm='spams' in ElasticNetSubspaceClustering. SPAMS may be installed by:
 ```
-sudo apt install liblapack-dev libopenblas-dev
-pip install --index-url https://test.pypi.org/simple/ spams
+pip install spams
 ```
 
 The Kymatio package (https://www.kymat.io/) is required for running experiments on MNIST. It may be installed by
